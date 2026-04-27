@@ -30,6 +30,12 @@
                 } else {
                     $message = "No waiting customer to update.";
                 }
+
+        if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["serve_next_customer"])) {
+            if (serveNextCustomer()) {
+                echo "<p>Next waiting customer has been marked as served.</p>";
+            } else {
+                echo "<p>No waiting customer to update.</p>";
             }
         }
     ?>
@@ -48,6 +54,9 @@
             <button type="submit" name="serve_next_customer">Mark Served Customer</button>
         </form>
         <h2>Current Queue</h2>
+        <form method="POST">
+            <button type="submit" name="serve_next_customer">Mark Served Customer</button>
+        </form>
         <table border="1">
             <tr>
                 <th>Created At</th>

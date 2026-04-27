@@ -238,6 +238,7 @@
         $conn->close();
     }
 
+
     function getCustomerCountdown($username){
         syncQueueByTime();
         $conn = connection();
@@ -257,6 +258,17 @@
             // Waiting time is based on queue position:
             // first waiting customer waits 1 service slot, second waits 2 slots, etc.
             $seconds_left = $position * $service_time;
+            $first_waiting_sql = "SELECT created_at FROM queue WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";
+            $first_waiting_result = mysqli_query($conn, $first_waiting_sql);
+            $remaining_current_slot = $service_time;
+            if ($first_waiting_result && mysqli_num_rows($first_waiting_result) > 0) {
+                $first_waiting_row = mysqli_fetch_assoc($first_waiting_result);
+                $elapsed_current = time() - strtotime($first_waiting_row["created_at"]);
+                $progress = $elapsed_current % $service_time;
+                $remaining_current_slot = $service_time - $progress;
+            }
+
+            $seconds_left = (($position - 1) * $service_time) + $remaining_current_slot;
             $conn->close();
             return max(0, (int)$seconds_left);
         }
