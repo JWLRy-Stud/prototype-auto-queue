@@ -23,17 +23,20 @@
                 echo "New user created successfully";
                 $username = "";
                 $password = "";
+                $conn->close();
                 return true;
             } else {
                 echo "Error: " . $sql . "<br>" . $conn->error;
                 $username = "";
                 $password = "";
+                $conn->close();
                 return false;
             }
         } else {
             echo "Please fill in all fields.";
             $username = "";
             $password = "";
+            $conn->close();
             return false;
         }
     }
@@ -48,33 +51,31 @@
         $sql = "SELECT usernames , passwords FROM users WHERE usernames='$username'";
         $result = mysqli_query($conn, $sql);
         $rows = mysqli_fetch_assoc($result);
-        $typedpass = password_hash($password, PASSWORD_DEFAULT);
         $ogpass = $rows['passwords'];
         if (password_verify($password, $ogpass)){
-            echo "username: {rows['usernames']} password: {rows['passwords']}  <br>";
-            echo "Login successful!";
+            //echo "username: {rows['usernames']} password: {rows['passwords']}  <br>";
+            //echo "Login successful!";
+            $conn->close();
             return true;
         } else {
             echo "Invalid username or password.";
+            $conn->close();
             return false;
         }
     }
 
     function checkQueueNumber(){
         $conn = connection();
-        try{
             $sql = "SELECT queue_number FROM queue ORDER BY queue_number DESC LIMIT 1";
             $result = mysqli_query($conn, $sql);
             if (mysqli_num_rows($result) > 0) {
                 $row = mysqli_fetch_assoc($result);
-                return $row['queue_number'] + 1;              
+                $conn->close();    
+                return $row['queue_number'] + 1;
             } else {
+                $conn->close();
                 return 1;
             }
-        }catch(Exception $e){
-            echo "Error: " . $e->getMessage();
-        }
-        
     }
 
     function getQueueNumber($username){
@@ -83,8 +84,10 @@
         $sql = "INSERT INTO queue (username, queue_number, status, created_at) VALUES ('$username', '$queue_number', 'waiting', NOW())";
         if ($conn->query($sql) === TRUE) {
             echo "Your Queue Number is: " . $queue_number . "<br>";
+            $conn->close();
         } else {
             echo "Error: " . $sql . "<br>" . $conn->error;
+            $conn->close();
         }
     }
 
@@ -93,35 +96,72 @@
         $sql = "SELECT status FROM queue WHERE username='$username' AND status='waiting'";
         $result = mysqli_query($conn, $sql);
         if (mysqli_num_rows($result) > 0) {
+            $conn->close();
             return true;
         } else {
+            $conn->close();
             return false;
         }
     }
 
-    function viewAllQueue($order = "ASC"){
+    function viewAllQueue(){
         $conn = connection();
-        $sql = "SELECT * FROM queue ORDER BY queue_number $order";
+        $sql = "SELECT * FROM queue ORDER BY queue_number ASC";
         $result = mysqli_query($conn, $sql);
         if (mysqli_num_rows($result) > 0) {
             while($row = mysqli_fetch_assoc($result)) {
-                echo "<br>"."created at: " . $row["created_at"]. " - Username: " . $row["username"]. " - Status: " . $row["status"]. "<br>";
+                echo "
+                    <tr>
+                        <td>" . $row["created_at"]. "</td>
+                        <td>" . $row["username"]. "</td>
+                        <td>" . $row["queue_number"]. "</td>
+                        <td>" . $row["status"]. "</td>
+                    </tr>
+                ";
             }
         } else {
             echo "No one is in the queue.";
         }
+        $conn->close();
     }
 
     function viewOwnQueue($username){
         $conn = connection();
-        $sql = "SELECT * FROM queue WHERE username='$username' ORDER BY queue_number ASC";
+        $sql = "SELECT * FROM queue WHERE username='$username' AND status='waiting'";
         $result = mysqli_query($conn, $sql);
         if (mysqli_num_rows($result) > 0) {
             while($row = mysqli_fetch_assoc($result)) {
-                echo "<br>"."created at: " . $row["created_at"]. " - Username: " . $row["username"]. " - Status: " . $row["status"]. "<br>";
+                echo "
+                    <tr>
+                        <td>
+                            <label>Created At:</label>
+                        </td>
+                        <td>" . $row["created_at"]. "</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Username:</label>
+                        </td>
+                        <td>" . $row["username"]. "</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Queue Number:</label>
+                        </td>
+                        <td>" . $row["queue_number"]. "</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Status:</label>
+                        </td>
+                        <td>" . $row["status"]. "</td>
+                    </tr>
+                    ";
             }
         } else {
             echo "You are not in the queue.";
         }
+        $conn->close();
     }
+    
 ?>

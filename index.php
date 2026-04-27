@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get a Queue Number</title>
+    <title>Login Page</title>
     <script type="text/javascript">
         function validateForm(){
             var username = document.getQueueForm.username.value;
@@ -17,14 +17,34 @@
     </script>
 </head>
 <body>
+    <div>
     <h1>Login to get a Queue Number</h1>  
     <form name="getQueueForm" action="index.php" method="post">
-        <label for="username">Username:</label>
-        <input type="text" name="username" placeholder="Enter your username"> <br>
-        <label for="password">Password:</label>
-        <input type="password" name="password" placeholder="Enter your password"> <br>
-        <input type="submit" name="login" value="Login" onclick="return validateForm()">
+        <table>
+            <tr>
+                <td>
+                    <label for="username">Username:</label>
+                </td>
+                <td>
+                    <input type="text" name="username" placeholder="Enter your username">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="password">Password:</label>
+                </td>
+                <td>
+                    <input type="password" name="password" placeholder="Enter your password">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="submit" name="login" value="Login" onclick="return validateForm()">
+                </td>
+            </tr>
+        </table>
     </form>
+    </div>
 </body>
 </html>
 
@@ -38,22 +58,8 @@
         $password = $_POST['password'];
         session_start();
         $_SESSION['username'] = $username;
-        /*$conn = connection();
-        $sql = "SELECT usernames , passwords FROM users WHERE usernames='$username' AND passwords='$password'";
-        $result = mysqli_query($conn, $sql);
-        $row = mysqli_fetch_assoc($result);
-        $hpass = $row['passwords'];
-        echo $hpass . "<br>";
-        */
-        //getQueueNumber($username);
-
         if(verifyUser($username, $password)){
             header("Location: timer.php");
         } 
-        //viewQueue();
-        
-        
-        
-        exit();
     }
 ?>
