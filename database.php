@@ -238,7 +238,7 @@
         $conn->close();
     }
 
-<<<<<<< codex/add-button-to-update-customer-status-iu9chp
+
     function getCustomerCountdown($username){
         syncQueueByTime();
         $conn = connection();
@@ -255,6 +255,9 @@
             $position_row = mysqli_fetch_assoc($position_result);
             $position = (int)$position_row["waiting_position"];
 
+            // Waiting time is based on queue position:
+            // first waiting customer waits 1 service slot, second waits 2 slots, etc.
+            $seconds_left = $position * $service_time;
             $first_waiting_sql = "SELECT created_at FROM queue WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";
             $first_waiting_result = mysqli_query($conn, $first_waiting_sql);
             $remaining_current_slot = $service_time;
@@ -281,8 +284,6 @@
         return null;
     }
 
-=======
->>>>>>> my-feature
     function serveNextCustomer(){
         $conn = connection();
         $sql = "UPDATE queue SET status='served' WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";

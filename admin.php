@@ -11,7 +11,6 @@
 
     <?php
         include ("database.php");
-<<<<<<< codex/add-button-to-update-customer-status-iu9chp
         syncQueueByTime();
         $service_time_seconds = getServiceTimeSeconds();
         $message = "";
@@ -31,14 +30,12 @@
                 } else {
                     $message = "No waiting customer to update.";
                 }
-=======
 
         if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["serve_next_customer"])) {
             if (serveNextCustomer()) {
                 echo "<p>Next waiting customer has been marked as served.</p>";
             } else {
                 echo "<p>No waiting customer to update.</p>";
->>>>>>> my-feature
             }
         }
     ?>
