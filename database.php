@@ -238,6 +238,7 @@
         $conn->close();
     }
 
+<<<<<<< codex/add-button-to-update-customer-status-iu9chp
     function getCustomerCountdown($username){
         syncQueueByTime();
         $conn = connection();
@@ -280,6 +281,8 @@
         return null;
     }
 
+=======
+>>>>>>> my-feature
     function serveNextCustomer(){
         $conn = connection();
         $sql = "UPDATE queue SET status='served' WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";
