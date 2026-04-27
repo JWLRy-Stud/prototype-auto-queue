@@ -104,6 +104,80 @@
         }
     }
 
+    function ensureQueueSettingsTable(){
+        $conn = connection();
+        $sql = "CREATE TABLE IF NOT EXISTS queue_settings (
+                    id INT PRIMARY KEY,
+                    service_time_seconds INT NOT NULL DEFAULT 60,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                )";
+        $conn->query($sql);
+        $conn->query("INSERT IGNORE INTO queue_settings (id, service_time_seconds) VALUES (1, 60)");
+        $conn->close();
+    }
+
+    function getServiceTimeSeconds(){
+        ensureQueueSettingsTable();
+        $conn = connection();
+        $sql = "SELECT service_time_seconds FROM queue_settings WHERE id = 1 LIMIT 1";
+        $result = mysqli_query($conn, $sql);
+        if ($result && mysqli_num_rows($result) > 0) {
+            $row = mysqli_fetch_assoc($result);
+            $conn->close();
+            return (int)$row["service_time_seconds"];
+        }
+
+        $conn->close();
+        return 60;
+    }
+
+    function setServiceTimeSeconds($seconds){
+        $seconds = (int)$seconds;
+        if ($seconds < 5) {
+            $seconds = 5;
+        }
+        $conn = connection();
+        $sql = "UPDATE queue_settings SET service_time_seconds=$seconds WHERE id=1";
+        $success = $conn->query($sql) === TRUE;
+        $conn->close();
+        return $success;
+    }
+
+    function syncQueueByTime(){
+        $service_time = getServiceTimeSeconds();
+        if ($service_time <= 0) {
+            return;
+        }
+
+        $conn = connection();
+        $first_sql = "SELECT created_at FROM queue ORDER BY queue_number ASC LIMIT 1";
+        $first_result = mysqli_query($conn, $first_sql);
+        if (!$first_result || mysqli_num_rows($first_result) === 0) {
+            $conn->close();
+            return;
+        }
+
+        $first_row = mysqli_fetch_assoc($first_result);
+        $elapsed_seconds = time() - strtotime($first_row["created_at"]);
+        if ($elapsed_seconds < $service_time) {
+            $conn->close();
+            return;
+        }
+
+        $total_should_be_served = (int) floor($elapsed_seconds / $service_time);
+        $served_result = mysqli_query($conn, "SELECT COUNT(*) AS served_count FROM queue WHERE status='served'");
+        $served_row = mysqli_fetch_assoc($served_result);
+        $served_count = (int)$served_row["served_count"];
+        $to_update = $total_should_be_served - $served_count;
+
+        if ($to_update > 0) {
+            $update_sql = "UPDATE queue SET status='served' WHERE status='waiting' ORDER BY queue_number ASC LIMIT $to_update";
+            $conn->query($update_sql);
+        }
+
+        $conn->close();
+    }
+
     function viewAllQueue(){
         $conn = connection();
         $sql = "SELECT * FROM queue ORDER BY queue_number ASC";
@@ -162,6 +236,53 @@
             echo "You are not in the queue.";
         }
         $conn->close();
+    }
+
+    function getCustomerCountdown($username){
+        syncQueueByTime();
+        $conn = connection();
+        $service_time = getServiceTimeSeconds();
+
+        $user_waiting_sql = "SELECT queue_number FROM queue WHERE username='$username' AND status='waiting' ORDER BY queue_number ASC LIMIT 1";
+        $user_waiting_result = mysqli_query($conn, $user_waiting_sql);
+        if ($user_waiting_result && mysqli_num_rows($user_waiting_result) > 0) {
+            $user_row = mysqli_fetch_assoc($user_waiting_result);
+            $queue_number = (int)$user_row["queue_number"];
+
+            $position_sql = "SELECT COUNT(*) AS waiting_position FROM queue WHERE status='waiting' AND queue_number <= $queue_number";
+            $position_result = mysqli_query($conn, $position_sql);
+            $position_row = mysqli_fetch_assoc($position_result);
+            $position = (int)$position_row["waiting_position"];
+
+            // Waiting time is based on queue position:
+            // first waiting customer waits 1 service slot, second waits 2 slots, etc.
+            $seconds_left = $position * $service_time;
+            $conn->close();
+            return max(0, (int)$seconds_left);
+        }
+
+        $served_sql = "SELECT queue_number FROM queue WHERE username='$username' AND status='served' ORDER BY queue_number DESC LIMIT 1";
+        $served_result = mysqli_query($conn, $served_sql);
+        if ($served_result && mysqli_num_rows($served_result) > 0) {
+            $conn->close();
+            return 0;
+        }
+
+        $conn->close();
+        return null;
+    }
+
+    function serveNextCustomer(){
+        $conn = connection();
+        $sql = "UPDATE queue SET status='served' WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";
+        if ($conn->query($sql) === TRUE) {
+            $updated_rows = $conn->affected_rows;
+            $conn->close();
+            return $updated_rows > 0;
+        }
+
+        $conn->close();
+        return false;
     }
     
 ?>
