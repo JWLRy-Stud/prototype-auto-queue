@@ -163,5 +163,18 @@
         }
         $conn->close();
     }
+
+    function serveNextCustomer(){
+        $conn = connection();
+        $sql = "UPDATE queue SET status='served' WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";
+        if ($conn->query($sql) === TRUE) {
+            $updated_rows = $conn->affected_rows;
+            $conn->close();
+            return $updated_rows > 0;
+        }
+
+        $conn->close();
+        return false;
+    }
     
 ?>
