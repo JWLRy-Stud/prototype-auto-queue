@@ -54,6 +54,7 @@ p {
 }
 
 button,
+.btn,
 .btn-link {
     border: 1px solid var(--primary);
     background: var(--primary);
@@ -63,6 +64,11 @@ button,
     cursor: pointer;
     text-decoration: none;
     display: inline-block;
+    font-size: 14px;
+}
+
+a,
+input[type="submit"] {
     font-size: 14px;
 }
 
@@ -91,4 +97,17 @@ td {
 
 th {
     background: #f9fafb;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.form-table td:first-child {
+    width: 180px;
 }
