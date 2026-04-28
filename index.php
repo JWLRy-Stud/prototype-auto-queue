@@ -62,6 +62,5 @@ if (isset($_POST['login'])){
             </form>
         </div>
     </div>
-    </div>
 </body>
 </html>
