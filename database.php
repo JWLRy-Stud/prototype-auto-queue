@@ -180,16 +180,6 @@
         if (!$useSharedConnection) {
             $conn = connection();
         }
-        $waitingSql = "SELECT queue_number FROM queue WHERE status='waiting' LIMIT 1";
-        $waitingResult = mysqli_query($conn, $waitingSql);
-
-        if (mysqli_num_rows($waitingResult) === 0) {
-            if (!$useSharedConnection) {
-                $conn->close();
-            }
-            return null;
-        }
-
         $sql = "SELECT queue_number FROM queue WHERE status='served' ORDER BY queue_number DESC LIMIT 1";
         $result = mysqli_query($conn, $sql);
 
