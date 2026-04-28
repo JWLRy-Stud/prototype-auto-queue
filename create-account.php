@@ -61,5 +61,6 @@ if (isset($_POST['create_account'])){
             </form>
         </div>
     </div>
+    </div>
 </body>
 </html>
