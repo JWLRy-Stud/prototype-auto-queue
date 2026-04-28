@@ -83,17 +83,17 @@
         $queue_number = checkQueueNumber();
         $sql = "INSERT INTO queue (username, queue_number, status, created_at) VALUES ('$username', '$queue_number', 'waiting', NOW())";
         if ($conn->query($sql) === TRUE) {
-            echo "Your Queue Number is: " . $queue_number . "<br>";
             $conn->close();
+            return $queue_number;
         } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
             $conn->close();
+            return false;
         }
     }
 
     function checkDuplicateQueue($username){
         $conn = connection();
-        $sql = "SELECT status FROM queue WHERE username='$username' AND status='waiting'";
+        $sql = "SELECT status FROM queue WHERE username='$username' AND status IN ('waiting', 'being served')";
         $result = mysqli_query($conn, $sql);
         if (mysqli_num_rows($result) > 0) {
             $conn->close();
@@ -127,7 +127,7 @@
 
     function viewOwnQueue($username){
         $conn = connection();
-        $sql = "SELECT * FROM queue WHERE username='$username' AND status='waiting'";
+        $sql = "SELECT * FROM queue WHERE username='$username' AND status IN ('waiting', 'being served') ORDER BY queue_number ASC";
         $result = mysqli_query($conn, $sql);
         if (mysqli_num_rows($result) > 0) {
             while($row = mysqli_fetch_assoc($result)) {
@@ -166,15 +166,68 @@
 
     function serveNextCustomer(){
         $conn = connection();
-        $sql = "UPDATE queue SET status='served' WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";
-        if ($conn->query($sql) === TRUE) {
-            $updated_rows = $conn->affected_rows;
+        mysqli_begin_transaction($conn);
+
+        try {
+            $servedQueueNumber = null;
+            $beingServedQueueNumber = null;
+
+            $currentSql = "SELECT queue_number FROM queue WHERE status='being served' ORDER BY queue_number ASC LIMIT 1 FOR UPDATE";
+            $currentResult = mysqli_query($conn, $currentSql);
+            if (mysqli_num_rows($currentResult) > 0) {
+                $currentRow = mysqli_fetch_assoc($currentResult);
+                $servedQueueNumber = (int)$currentRow['queue_number'];
+                $updateCurrentSql = "UPDATE queue SET status='served' WHERE queue_number={$servedQueueNumber} AND status='being served' LIMIT 1";
+                mysqli_query($conn, $updateCurrentSql);
+            }
+
+            $nextSql = "SELECT queue_number FROM queue WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1 FOR UPDATE";
+            $nextResult = mysqli_query($conn, $nextSql);
+            if (mysqli_num_rows($nextResult) > 0) {
+                $nextRow = mysqli_fetch_assoc($nextResult);
+                $beingServedQueueNumber = (int)$nextRow['queue_number'];
+                $updateNextSql = "UPDATE queue SET status='being served' WHERE queue_number={$beingServedQueueNumber} AND status='waiting' LIMIT 1";
+                mysqli_query($conn, $updateNextSql);
+            }
+
+            mysqli_commit($conn);
             $conn->close();
-            return $updated_rows > 0;
+
+            if ($servedQueueNumber === null && $beingServedQueueNumber === null) {
+                return false;
+            }
+
+            return [
+                'served_queue_number' => $servedQueueNumber,
+                'being_served_queue_number' => $beingServedQueueNumber
+            ];
+        } catch (Exception $e) {
+            mysqli_rollback($conn);
+            $conn->close();
+            return false;
+        }
+    }
+
+    function getCurrentlyServingQueueNumber($conn = null){
+        $useSharedConnection = $conn !== null;
+        if (!$useSharedConnection) {
+            $conn = connection();
+        }
+        $sql = "SELECT queue_number FROM queue WHERE status='being served' ORDER BY queue_number ASC LIMIT 1";
+        $result = mysqli_query($conn, $sql);
+
+        if (mysqli_num_rows($result) > 0) {
+            $row = mysqli_fetch_assoc($result);
+            if (!$useSharedConnection) {
+                $conn->close();
+            }
+            return (int)$row['queue_number'];
         }
 
-        $conn->close();
-        return false;
+        if (!$useSharedConnection) {
+            $conn->close();
+        }
+        return null;
     }
     
 ?>
