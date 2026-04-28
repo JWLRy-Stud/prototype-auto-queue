@@ -1,3 +1,16 @@
+<?php
+include ("database.php");
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["serve_next_customer"])) {
+    $serveResult = serveNextCustomer();
+    $redirectStatus = $serveResult ? "served" : "empty";
+
+    header("Location: admin.php?serve_status={$redirectStatus}");
+    exit;
+}
+
+$serveStatus = $_GET["serve_status"] ?? null;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,17 +22,11 @@
     <h1>Admin</h1>
     <a href="create-account.php">Create Account</a>
 
-    <?php
-        include ("database.php");
-
-        if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["serve_next_customer"])) {
-            if (serveNextCustomer()) {
-                echo "<p>Next waiting customer has been marked as served.</p>";
-            } else {
-                echo "<p>No waiting customer to update.</p>";
-            }
-        }
-    ?>
+    <?php if ($serveStatus === "served"): ?>
+        <p>Next waiting customer has been marked as served.</p>
+    <?php elseif ($serveStatus === "empty"): ?>
+        <p>No waiting customer to update.</p>
+    <?php endif; ?>
 
     <div>
         <h2>Current Queue</h2>
