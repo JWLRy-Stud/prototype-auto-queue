@@ -2,10 +2,21 @@
 include ("database.php");
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["serve_next_customer"])) {
-    $servedQueueNumber = serveNextCustomer();
+    $serveResult = serveNextCustomer();
 
-    if ($servedQueueNumber !== false) {
-        header("Location: admin.php?serve_status=served&served_queue_number={$servedQueueNumber}");
+    if ($serveResult !== false) {
+        $servedQueueNumber = $serveResult['served_queue_number'];
+        $beingServedQueueNumber = $serveResult['being_served_queue_number'];
+
+        $redirectParams = ["serve_status=updated"];
+        if ($servedQueueNumber !== null) {
+            $redirectParams[] = "served_queue_number={$servedQueueNumber}";
+        }
+        if ($beingServedQueueNumber !== null) {
+            $redirectParams[] = "being_served_queue_number={$beingServedQueueNumber}";
+        }
+
+        header("Location: admin.php?" . implode("&", $redirectParams));
     } else {
         header("Location: admin.php?serve_status=empty");
     }
@@ -14,6 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["serve_next_customer"]
 
 $serveStatus = $_GET["serve_status"] ?? null;
 $servedQueueNumber = $_GET["served_queue_number"] ?? null;
+$beingServedQueueNumber = $_GET["being_served_queue_number"] ?? null;
 $currentlyServingQueueNumber = getCurrentlyServingQueueNumber();
 ?>
 <!DOCTYPE html>
@@ -38,8 +50,13 @@ $currentlyServingQueueNumber = getCurrentlyServingQueueNumber();
                 <p><strong>Currently serving: none yet</strong></p>
             <?php endif; ?>
 
-            <?php if ($serveStatus === "served" && $servedQueueNumber !== null): ?>
-                <p>Queue #<?php echo (int)$servedQueueNumber; ?> has been marked as served.</p>
+            <?php if ($serveStatus === "updated"): ?>
+                <?php if ($servedQueueNumber !== null): ?>
+                    <p>Queue #<?php echo (int)$servedQueueNumber; ?> has been marked as served.</p>
+                <?php endif; ?>
+                <?php if ($beingServedQueueNumber !== null): ?>
+                    <p>Queue #<?php echo (int)$beingServedQueueNumber; ?> is now being served.</p>
+                <?php endif; ?>
             <?php elseif ($serveStatus === "empty"): ?>
                 <p>No waiting customer to update.</p>
             <?php endif; ?>
