@@ -18,6 +18,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_queue"]) && $
 if ($queueStatus === null) {
     $queueStatus = $_GET["queue_status"] ?? null;
 }
+
+$currentlyServingQueueNumber = getCurrentlyServingQueueNumber();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -28,6 +30,12 @@ if ($queueStatus === null) {
 </head>
 <body>
     <h1>Your Queue Number</h1>
+
+    <?php if ($currentlyServingQueueNumber !== null): ?>
+        <p><strong>Currently serving #<?php echo $currentlyServingQueueNumber; ?></strong></p>
+    <?php else: ?>
+        <p><strong>Currently serving: none yet</strong></p>
+    <?php endif; ?>
 
     <?php if ($username === null): ?>
         <p>Please log in first.</p>
