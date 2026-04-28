@@ -83,11 +83,11 @@
         $queue_number = checkQueueNumber();
         $sql = "INSERT INTO queue (username, queue_number, status, created_at) VALUES ('$username', '$queue_number', 'waiting', NOW())";
         if ($conn->query($sql) === TRUE) {
-            echo "Your Queue Number is: " . $queue_number . "<br>";
             $conn->close();
+            return $queue_number;
         } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
             $conn->close();
+            return false;
         }
     }
 
@@ -167,14 +167,42 @@
     function serveNextCustomer(){
         $conn = connection();
         $sql = "UPDATE queue SET status='served' WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";
-        if ($conn->query($sql) === TRUE) {
-            $updated_rows = $conn->affected_rows;
-            $conn->close();
-            return $updated_rows > 0;
+
+        if ($conn->query($sql) === TRUE && $conn->affected_rows > 0) {
+            $servedSql = "SELECT queue_number FROM queue WHERE status='served' ORDER BY queue_number DESC LIMIT 1";
+            $servedResult = mysqli_query($conn, $servedSql);
+
+            if (mysqli_num_rows($servedResult) > 0) {
+                $servedRow = mysqli_fetch_assoc($servedResult);
+                $conn->close();
+                return (int)$servedRow['queue_number'];
+            }
         }
 
         $conn->close();
         return false;
+    }
+
+    function getCurrentlyServingQueueNumber($conn = null){
+        $useSharedConnection = $conn !== null;
+        if (!$useSharedConnection) {
+            $conn = connection();
+        }
+        $sql = "SELECT queue_number FROM queue WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";
+        $result = mysqli_query($conn, $sql);
+
+        if (mysqli_num_rows($result) > 0) {
+            $row = mysqli_fetch_assoc($result);
+            if (!$useSharedConnection) {
+                $conn->close();
+            }
+            return (int)$row['queue_number'];
+        }
+
+        if (!$useSharedConnection) {
+            $conn->close();
+        }
+        return null;
     }
     
 ?>
