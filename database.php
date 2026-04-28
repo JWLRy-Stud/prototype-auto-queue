@@ -227,7 +227,7 @@
         return null;
     }
 
-    function getCurrentlyServingQueueNumber($conn = null){
+    /*function getCurrentlyServingQueueNumber($conn = null){
         $useSharedConnection = $conn !== null;
         if (!$useSharedConnection) {
             $conn = connection();
@@ -248,5 +248,5 @@
         }
         return null;
     }
-    
+    */
 ?>
