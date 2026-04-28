@@ -166,9 +166,14 @@
         $sql = "UPDATE queue SET status='served' WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";
 
         if ($conn->query($sql) === TRUE && $conn->affected_rows > 0) {
-            $servedQueueNumber = getCurrentlyServingQueueNumber($conn);
-            $conn->close();
-            return $servedQueueNumber;
+            $servedSql = "SELECT queue_number FROM queue WHERE status='served' ORDER BY queue_number DESC LIMIT 1";
+            $servedResult = mysqli_query($conn, $servedSql);
+
+            if (mysqli_num_rows($servedResult) > 0) {
+                $servedRow = mysqli_fetch_assoc($servedResult);
+                $conn->close();
+                return (int)$servedRow['queue_number'];
+            }
         }
 
         $conn->close();
@@ -180,17 +185,7 @@
         if (!$useSharedConnection) {
             $conn = connection();
         }
-        $waitingSql = "SELECT queue_number FROM queue WHERE status='waiting' LIMIT 1";
-        $waitingResult = mysqli_query($conn, $waitingSql);
-
-        if (mysqli_num_rows($waitingResult) === 0) {
-            if (!$useSharedConnection) {
-                $conn->close();
-            }
-            return null;
-        }
-
-        $sql = "SELECT queue_number FROM queue WHERE status='served' ORDER BY queue_number DESC LIMIT 1";
+        $sql = "SELECT queue_number FROM queue WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";
         $result = mysqli_query($conn, $sql);
 
         if (mysqli_num_rows($result) > 0) {
