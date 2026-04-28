@@ -20,7 +20,7 @@
     <div>
         <h1>Create Account</h1>  
         <a href="admin.php">Back to Admin</a>
-        <form name="createAccountForm" action="testing.php" method="POST">
+        <form name="createAccountForm" action="create-account.php" method="POST">
             <table >
                 <tr>
                     <td>
