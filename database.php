@@ -226,27 +226,5 @@
         }
         return null;
     }
-
-    function getCurrentlyServingQueueNumber($conn = null){
-        $useSharedConnection = $conn !== null;
-        if (!$useSharedConnection) {
-            $conn = connection();
-        }
-        $sql = "SELECT queue_number FROM queue WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";
-        $result = mysqli_query($conn, $sql);
-
-        if (mysqli_num_rows($result) > 0) {
-            $row = mysqli_fetch_assoc($result);
-            if (!$useSharedConnection) {
-                $conn->close();
-            }
-            return (int)$row['queue_number'];
-        }
-
-        if (!$useSharedConnection) {
-            $conn->close();
-        }
-        return null;
-    }
     
 ?>

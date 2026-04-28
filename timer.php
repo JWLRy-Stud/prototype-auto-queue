@@ -24,6 +24,7 @@ if ($queueStatus === null) {
 }
 
 $currentlyServingQueueNumber = getCurrentlyServingQueueNumber();
+$hasActiveQueue = $username !== null ? checkDuplicateQueue($username) : false;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -46,18 +47,18 @@ $currentlyServingQueueNumber = getCurrentlyServingQueueNumber();
 
             <?php if ($username === null): ?>
                 <p>Please log in first.</p>
-            <?php elseif (checkDuplicateQueue($username)): ?>
+            <?php elseif ($queueStatus === "assigned"): ?>
+                <p>Queue number assigned successfully.</p>
+                <table>
+                    <?php viewOwnQueue($username); ?>
+                </table>
+            <?php elseif ($hasActiveQueue): ?>
                 <p>You already have a queue number.</p>
                 <table>
                     <?php viewOwnQueue($username); ?>
                 </table>
             <?php else: ?>
-                <?php if ($queueStatus === "assigned"): ?>
-                    <p>Queue number assigned successfully.</p>
-                    <table>
-                        <?php viewOwnQueue($username); ?>
-                    </table>
-                <?php elseif ($queueStatus === "error"): ?>
+                <?php if ($queueStatus === "error"): ?>
                     <p>Unable to assign a queue number right now. Please try again.</p>
                 <?php else: ?>
                     <p>Do you want to get a queue number now?</p>
