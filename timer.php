@@ -1,3 +1,26 @@
+<?php
+include ("database.php");
+session_start();
+
+$username = $_SESSION['username'] ?? null;
+$queueStatus = null;
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_queue"]) && $username !== null) {
+    if (checkDuplicateQueue($username)) {
+        $queueStatus = "existing";
+    } else {
+        getQueueNumber($username);
+        header("Location: timer.php?queue_status=assigned");
+        exit;
+    }
+}
+
+if ($queueStatus === null) {
+    $queueStatus = $_GET["queue_status"] ?? null;
+}
+
+$currentlyServingQueueNumber = getCurrentlyServingQueueNumber();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,20 +30,34 @@
 </head>
 <body>
     <h1>Your Queue Number</h1>
-    <table border="1">
-        <?php
-            include ("database.php");
-            session_start();
-            if(checkDuplicateQueue($_SESSION['username'])){
-                echo "You already have a queue number.";
-                viewOwnQueue($_SESSION['username']);
-            } else {
-                echo "Queue number assigned successfully.";
-                getQueueNumber($_SESSION['username']);
-                viewOwnQueue($_SESSION['username']);
-            }
-        ?> 
-    </table>
+
+    <?php if ($currentlyServingQueueNumber !== null): ?>
+        <p><strong>Currently serving #<?php echo $currentlyServingQueueNumber; ?></strong></p>
+    <?php else: ?>
+        <p><strong>Currently serving: none yet</strong></p>
+    <?php endif; ?>
+
+    <?php if ($username === null): ?>
+        <p>Please log in first.</p>
+    <?php elseif (checkDuplicateQueue($username)): ?>
+        <p>You already have a queue number.</p>
+        <table border="1">
+            <?php viewOwnQueue($username); ?>
+        </table>
+    <?php else: ?>
+        <?php if ($queueStatus === "assigned"): ?>
+            <p>Queue number assigned successfully.</p>
+            <table border="1">
+                <?php viewOwnQueue($username); ?>
+            </table>
+        <?php else: ?>
+            <p>Do you want to get a queue number now?</p>
+            <form method="POST" action="timer.php" onsubmit="return confirm('Do you want to get a queue number now?');">
+                <button type="submit" name="request_queue">Get Queue Number</button>
+            </form>
+        <?php endif; ?>
+    <?php endif; ?>
+
     <a href="index.php">Back to Login Page</a>
 </body>
 </html>

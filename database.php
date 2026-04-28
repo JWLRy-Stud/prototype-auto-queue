@@ -166,15 +166,41 @@
 
     function serveNextCustomer(){
         $conn = connection();
-        $sql = "UPDATE queue SET status='served' WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";
-        if ($conn->query($sql) === TRUE) {
-            $updated_rows = $conn->affected_rows;
+
+        $sql = "SELECT queue_number FROM queue WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1";
+        $result = mysqli_query($conn, $sql);
+
+        if (mysqli_num_rows($result) === 0) {
             $conn->close();
-            return $updated_rows > 0;
+            return false;
+        }
+
+        $row = mysqli_fetch_assoc($result);
+        $queueNumber = (int)$row['queue_number'];
+        $updateSql = "UPDATE queue SET status='served' WHERE queue_number=$queueNumber AND status='waiting' LIMIT 1";
+
+        if ($conn->query($updateSql) === TRUE && $conn->affected_rows > 0) {
+            $conn->close();
+            return $queueNumber;
         }
 
         $conn->close();
         return false;
+    }
+
+    function getCurrentlyServingQueueNumber(){
+        $conn = connection();
+        $sql = "SELECT queue_number FROM queue WHERE status='served' ORDER BY queue_number DESC LIMIT 1";
+        $result = mysqli_query($conn, $sql);
+
+        if (mysqli_num_rows($result) > 0) {
+            $row = mysqli_fetch_assoc($result);
+            $conn->close();
+            return (int)$row['queue_number'];
+        }
+
+        $conn->close();
+        return null;
     }
     
 ?>
