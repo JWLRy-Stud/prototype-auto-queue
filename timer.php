@@ -9,8 +9,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_queue"]) && $
     if (checkDuplicateQueue($username)) {
         $queueStatus = "existing";
     } else {
-        getQueueNumber($username);
-        header("Location: timer.php?queue_status=assigned");
+        $queueNumber = getQueueNumber($username);
+        if ($queueNumber !== false) {
+            header("Location: timer.php?queue_status=assigned");
+        } else {
+            header("Location: timer.php?queue_status=error");
+        }
         exit;
     }
 }
@@ -50,6 +54,8 @@ $currentlyServingQueueNumber = getCurrentlyServingQueueNumber();
             <table border="1">
                 <?php viewOwnQueue($username); ?>
             </table>
+        <?php elseif ($queueStatus === "error"): ?>
+            <p>Unable to assign a queue number right now. Please try again.</p>
         <?php else: ?>
             <p>Do you want to get a queue number now?</p>
             <form method="POST" action="timer.php" onsubmit="return confirm('Do you want to get a queue number now?');">
