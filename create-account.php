@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account</title>
+    <link rel="stylesheet" href="style.css">
     <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">-->
     <script type="text/javascript">
         function validateForm(){
@@ -17,11 +18,12 @@
     </script>
 </head>
 <body>
-    <div>
+    <div class="container">
+    <div class="card">
         <h1>Create Account</h1>  
-        <a href="admin.php">Back to Admin</a>
+        <p class="muted"><a href="admin.php">Back to Admin</a></p>
         <form name="createAccountForm" action="testing.php" method="POST">
-            <table >
+            <table class="form-table">
                 <tr>
                     <td>
                         <label>Create Username:</label>
@@ -40,11 +42,12 @@
                 </tr>
                 <tr>
                     <td>
-                        <input type="submit" name="create_account" value="Create Account" onclick="return validateForm()">
+                        <input class="btn" type="submit" name="create_account" value="Create Account" onclick="return validateForm()">
                     </td>
                 </tr>
             </table>
         </form>
+    </div>
     </div>
 </body>
 </html>

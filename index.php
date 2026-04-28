@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
+    <link rel="stylesheet" href="style.css">
     <script type="text/javascript">
         function validateForm(){
             var username = document.getQueueForm.username.value;
@@ -17,10 +18,11 @@
     </script>
 </head>
 <body>
-    <div>
+    <div class="container">
+    <div class="card">
     <h1>Login to get a Queue Number</h1>  
     <form name="getQueueForm" action="index.php" method="post">
-        <table>
+        <table class="form-table">
             <tr>
                 <td>
                     <label for="username">Username:</label>
@@ -39,11 +41,12 @@
             </tr>
             <tr>
                 <td>
-                    <input type="submit" name="login" value="Login" onclick="return validateForm()">
+                    <input class="btn" type="submit" name="login" value="Login" onclick="return validateForm()">
                 </td>
             </tr>
         </table>
     </form>
+    </div>
     </div>
 </body>
 </html>
