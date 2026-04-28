@@ -24,7 +24,7 @@
     <div>
         <h2>Current Queue</h2>
         <form method="POST">
-            <button type="submit" name="serve_next_customer">Mark Served Customer</button>
+            <button type="submit" name="serve_next_customer">Mark the next Served Customer</button>
         </form>
         <table border="1">
             <tr>
