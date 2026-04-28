@@ -171,20 +171,34 @@
 
             $currentSql = "SELECT queue_number FROM queue WHERE status='being served' ORDER BY queue_number ASC LIMIT 1 FOR UPDATE";
             $currentResult = mysqli_query($conn, $currentSql);
+            if ($currentResult === false) {
+                throw new Exception("Failed to query currently served customer.");
+            }
+
             if (mysqli_num_rows($currentResult) > 0) {
                 $currentRow = mysqli_fetch_assoc($currentResult);
                 $servedQueueNumber = (int)$currentRow['queue_number'];
                 $updateCurrentSql = "UPDATE queue SET status='served' WHERE queue_number={$servedQueueNumber} AND status='being served' LIMIT 1";
-                mysqli_query($conn, $updateCurrentSql);
+                $updateCurrentResult = mysqli_query($conn, $updateCurrentSql);
+                if ($updateCurrentResult === false) {
+                    throw new Exception("Failed to update currently served customer.");
+                }
             }
 
             $nextSql = "SELECT queue_number FROM queue WHERE status='waiting' ORDER BY queue_number ASC LIMIT 1 FOR UPDATE";
             $nextResult = mysqli_query($conn, $nextSql);
+            if ($nextResult === false) {
+                throw new Exception("Failed to query next waiting customer.");
+            }
+
             if (mysqli_num_rows($nextResult) > 0) {
                 $nextRow = mysqli_fetch_assoc($nextResult);
                 $beingServedQueueNumber = (int)$nextRow['queue_number'];
                 $updateNextSql = "UPDATE queue SET status='being served' WHERE queue_number={$beingServedQueueNumber} AND status='waiting' LIMIT 1";
-                mysqli_query($conn, $updateNextSql);
+                $updateNextResult = mysqli_query($conn, $updateNextSql);
+                if ($updateNextResult === false) {
+                    throw new Exception("Failed to promote waiting customer.");
+                }
             }
 
             mysqli_commit($conn);
@@ -198,7 +212,7 @@
                 'served_queue_number' => $servedQueueNumber,
                 'being_served_queue_number' => $beingServedQueueNumber
             ];
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             mysqli_rollback($conn);
             $conn->close();
             return false;
