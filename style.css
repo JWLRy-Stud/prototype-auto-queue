@@ -111,3 +111,11 @@ input[type="password"] {
 .form-table td:first-child {
     width: 180px;
 }
+
+.form-table tr td {
+    border: 0px;
+    padding: 10px;
+    text-align: left;
+    font-size: 14px;
+}
+

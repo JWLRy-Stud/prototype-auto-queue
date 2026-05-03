@@ -24,20 +24,17 @@
                 $username = "";
                 $password = "";
                 $conn->close();
-                return true;
             } else {
                 echo "Error: " . $sql . "<br>" . $conn->error;
                 $username = "";
                 $password = "";
                 $conn->close();
-                return false;
             }
         } else {
             echo "Please fill in all fields.";
             $username = "";
             $password = "";
             $conn->close();
-            return false;
         }
     }
 
